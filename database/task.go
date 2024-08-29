@@ -11,21 +11,27 @@ type taskRepository struct {
 }
 
 type task struct {
-	Id     string
-	Status models.TaskStatus
+	Id           string
+	Status       models.TaskStatus
+	ImageAddress string
+	ImageName    string
 }
 
 func (t task) model() *models.Task {
 	return &models.Task{
-		Id:     t.Id,
-		Status: t.Status,
+		Id:           t.Id,
+		Status:       t.Status,
+		ImageAddress: t.ImageAddress,
+		ImageName:    t.ImageName,
 	}
 }
 
 func makeTask(t models.Task) *models.Task {
 	return &models.Task{
-		Id:     t.Id,
-		Status: t.Status,
+		Id:           t.Id,
+		Status:       t.Status,
+		ImageAddress: t.ImageAddress,
+		ImageName:    t.ImageName,
 	}
 }
 

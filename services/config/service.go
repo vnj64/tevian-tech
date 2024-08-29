@@ -2,7 +2,7 @@ package config
 
 import (
 	"errors"
-	"os"
+	"github.com/joho/godotenv"
 	"tevian/domain/services"
 )
 
@@ -18,14 +18,15 @@ type service struct {
 }
 
 func Make() (services.Config, error) {
-	cloudLogin := os.Getenv("CLOUD_LOGIN")
-	cloudPassword := os.Getenv("CLOUD_PASSWORD")
-	postgresqlHost := os.Getenv("POSTGRESQL_HOST")
-	postgresqlPort := os.Getenv("POSTGRESQL_PORT")
-	postgresqlUser := os.Getenv("POSTGRESQL_USER")
-	postgresqlPassword := os.Getenv("POSTGRESQL_PASSWORD")
-	postgresqlDatabase := os.Getenv("POSTGRESQL_DATABASE")
-	baseFaceCloudUrl := os.Getenv("BASE_FACE_CLOUD_URL")
+	envFile, _ := godotenv.Read(".env")
+	cloudLogin := envFile["CLOUD_LOGIN"]
+	cloudPassword := envFile["CLOUD_PASSWORD"]
+	postgresqlHost := envFile["POSTGRESQL_HOST"]
+	postgresqlPort := envFile["POSTGRESQL_PORT"]
+	postgresqlUser := envFile["POSTGRESQL_USER"]
+	postgresqlPassword := envFile["POSTGRESQL_PASSWORD"]
+	postgresqlDatabase := envFile["POSTGRESQL_DATABASE"]
+	baseFaceCloudUrl := envFile["BASE_FACE_CLOUD_URL"]
 
 	if cloudLogin == "" || cloudPassword == "" || postgresqlHost == "" || postgresqlPort == "" || postgresqlUser == "" || postgresqlPassword == "" || postgresqlDatabase == "" || baseFaceCloudUrl == "" {
 		return nil, errors.New("please check variables on .env")

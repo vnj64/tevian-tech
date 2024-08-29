@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"runtime"
 	"strings"
+	v1 "tevian/api/v1"
 )
 
 type HttpServer struct {
@@ -31,7 +32,7 @@ func NewHttpServer() Server {
 		AllowOrigins:     "*",
 		AllowMethods:     strings.Join(methods, ","),
 		AllowHeaders:     strings.Join(headers, ", "),
-		AllowCredentials: true,
+		AllowCredentials: false,
 		MaxAge:           300,
 	})
 
@@ -49,6 +50,14 @@ func (s *HttpServer) Start() {
 		ctx.Locals("context", domainContext)
 		return ctx.Next()
 	})
+
+	task := s.app.Group("/api/v1/task")
+	{
+		task.Post("", v1.WrapHandler(v1.CreateTaskHandler))
+		task.Post("/:id/upload_image", v1.WrapHandler(v1.UploadTaskImageHandler))
+		task.Delete("/:id", v1.WrapHandler(v1.DeleteTaskHandler))
+		task.Post("/:id/start_task", v1.WrapHandler(v1.StartTaskHandler))
+	}
 
 	err := s.app.Listen(":3000")
 	if err != nil {

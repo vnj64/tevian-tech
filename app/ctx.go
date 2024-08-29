@@ -44,10 +44,7 @@ func InitCtx() *ctx {
 		panic(err)
 	}
 
-	faceCloud, err := face_cloud.GetAccessToken(cfg.CloudLogin(), cfg.CloudPassword())
-	if err != nil {
-		panic(err)
-	}
+	faceCloud := face_cloud.Make(cfg)
 
 	connection, err := InitDb(cfg)
 	if err != nil {

@@ -7,5 +7,5 @@ import (
 )
 
 func InitDb(cfg services.Config) (domain.Connection, error) {
-	return database.Make(cfg.PostgresqlUser(), cfg.PostgresqlPassword(), cfg.PostgresqlHost(), cfg.PostgresqlPort(), cfg.PostgresqlDatabase(), true)
+	return database.Make(cfg.PostgresqlUser(), cfg.PostgresqlPassword(), cfg.PostgresqlHost(), cfg.PostgresqlPort(), cfg.PostgresqlDatabase())
 }

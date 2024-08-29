@@ -21,14 +21,13 @@ func makeConnection(db *gorm.DB) *connection {
 	}
 }
 
-func Make(user, password, host, port, database string, sslmode bool) (domain.Connection, error) {
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%v",
+func Make(user, password, host, port, database string) (domain.Connection, error) {
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s",
 		user,
 		password,
 		host,
 		port,
 		database,
-		true,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
