@@ -11,24 +11,27 @@ type imageRepository struct {
 }
 
 type image struct {
-	Id     string
-	TaskId string
-	Name   string
+	Id           string
+	TaskId       string
+	ImageName    string
+	ImageAddress string
 }
 
 func (t image) model() *models.Image {
 	return &models.Image{
-		Id:     t.Id,
-		TaskId: t.TaskId,
-		Name:   t.Name,
+		Id:           t.Id,
+		TaskId:       t.TaskId,
+		ImageName:    t.ImageName,
+		ImageAddress: t.ImageAddress,
 	}
 }
 
 func makeImage(t models.Image) *models.Image {
 	return &models.Image{
-		Id:     t.Id,
-		TaskId: t.TaskId,
-		Name:   t.Name,
+		Id:           t.Id,
+		TaskId:       t.TaskId,
+		ImageName:    t.ImageName,
+		ImageAddress: t.ImageAddress,
 	}
 }
 
@@ -52,14 +55,20 @@ func (tr *imageRepository) WhereId(id string) (*models.Image, error) {
 	return result.model(), nil
 }
 
-func (tr *imageRepository) WhereTaskId(id string) (*models.Image, error) {
-	var result image
+func (tr *imageRepository) WhereTaskId(id string) ([]models.Image, error) {
+	var results []image
 
-	if err := tr.db.Where(models.Image{TaskId: id}).First(&result).Error; err != nil {
+	if err := tr.db.Where(models.Image{TaskId: id}).Find(&results).Error; err != nil {
 		return nil, fmt.Errorf("unable to find image: %v", err)
 	}
 
-	return result.model(), nil
+	out := make([]models.Image, len(results))
+
+	for j, i := range results {
+		out[j] = *i.model()
+	}
+
+	return out, nil
 }
 
 func (tr *imageRepository) Update(id string, updates map[string]interface{}) error {

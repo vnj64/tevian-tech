@@ -49,8 +49,16 @@ func Run(c domain.Context, r Request) error {
 		return fmt.Errorf("nothing to update")
 	}
 
-	if err := c.Connection().Task().Update(r.Id, updates); err != nil {
-		return fmt.Errorf("failed to update task due [%v]", err)
+	img := models.Image{
+		Id:           uuid.New().String(),
+		TaskId:       r.Id,
+		ImageName:    r.ImageName + ".jpg",
+		ImageAddress: fmt.Sprintf("images/%s", r.ImageName),
+	}
+
+	_, err = c.Connection().Image().Insert(img)
+	if err != nil {
+		return fmt.Errorf("failed to insert image due [%v]", err)
 	}
 
 	return nil

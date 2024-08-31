@@ -2,8 +2,6 @@ CREATE TABLE IF NOT EXISTS tasks
 (
     id uuid not null PRIMARY KEY,
     status varchar(255) not null default 'FORMING',
-    image_address varchar(255),
-    image_name varchar(255),
     all_faces_quantity int,
     male_quantity int,
     female_quantity int,
@@ -14,7 +12,8 @@ CREATE TABLE IF NOT EXISTS tasks
 CREATE TABLE images (
     id uuid not null PRIMARY KEY,
     task_id uuid REFERENCES tasks(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL
+    image_name varchar(255),
+    image_address varchar(255)
 );
 
 CREATE TABLE faces (

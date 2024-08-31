@@ -12,8 +12,6 @@ type TaskStatus string
 type Task struct {
 	Id               string     `json:"id"`
 	Status           TaskStatus `json:"status"`
-	ImageAddress     *string    `json:"imageAddress"`
-	ImageName        *string    `json:"imageName"`
 	AllFacesQuantity *int
 	MaleQuantity     *int
 	FemaleQuantity   *int

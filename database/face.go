@@ -15,7 +15,7 @@ type face struct {
 	ImageId string
 	Bbox    string
 	Gender  string
-	Age     int
+	Age     float64
 }
 
 func (t face) model() *models.Face {

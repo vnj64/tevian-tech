@@ -11,18 +11,18 @@ type Request struct {
 }
 
 type Response struct {
-	TaskId     string            `json:"taskId"`
-	TaskStatus models.TaskStatus `json:"taskStatus"`
-	Image      *models.Image     `json:"image"`
-	Faces      []models.Face     `json:"faces"`
-	Statistics StatsAdditional   `json:"statistics"`
+	TaskId     string                   `json:"taskId"`
+	TaskStatus models.TaskStatus        `json:"taskStatus"`
+	Images     []models.Image           `json:"images"`
+	Faces      map[string][]models.Face `json:"faces"`
+	Statistics StatsAdditional          `json:"statistics"`
 }
 
 type StatsAdditional struct {
-	ALlFacesQuantity int     `json:"allFacesQuantity"`
-	AllMales         int     `json:"allMales"`
-	AverageMaleAge   float64 `json:"averageMaleAge"`
-	AverageFemaleAge float64 `json:"averageFemaleAge"`
+	AllFacesQuantity   int     `json:"allFacesQuantity"`
+	AllGendersQuantity int     `json:"allGendersQuantity"`
+	AverageMaleAge     float64 `json:"averageMaleAge"`
+	AverageFemaleAge   float64 `json:"averageFemaleAge"`
 }
 
 func Run(c domain.Context, r Request) (*Response, error) {
@@ -31,26 +31,30 @@ func Run(c domain.Context, r Request) (*Response, error) {
 		return nil, fmt.Errorf("task with id [%s] does not exist: %v", r.Id, err)
 	}
 
-	image, err := c.Connection().Image().WhereTaskId(task.Id)
+	images, err := c.Connection().Image().WhereTaskId(task.Id)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching images for task with id [%s]: %v", r.Id, err)
 	}
 
-	imageFaces, err := c.Connection().Face().WhereImageId(image.Id)
-	if err != nil {
-		return nil, fmt.Errorf("error fetching faces for image with id [%s]: %v", image.Id, err)
+	facesByImage := make(map[string][]models.Face)
+	for _, image := range images {
+		imageFaces, err := c.Connection().Face().WhereImageId(image.Id)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching faces for image with id [%s]: %v", image.Id, err)
+		}
+		facesByImage[image.Id] = imageFaces
 	}
 
 	return &Response{
 		TaskId:     task.Id,
 		TaskStatus: task.Status,
-		Image:      image,
-		Faces:      imageFaces,
+		Images:     images,
+		Faces:      facesByImage,
 		Statistics: StatsAdditional{
-			ALlFacesQuantity: *task.AllFacesQuantity,
-			AllMales:         *task.MaleQuantity + *task.FemaleQuantity,
-			AverageMaleAge:   *task.AverageMaleAge,
-			AverageFemaleAge: *task.AverageFemaleAge,
+			AllFacesQuantity:   *task.AllFacesQuantity,
+			AllGendersQuantity: *task.AllFacesQuantity,
+			AverageMaleAge:     *task.AverageMaleAge,
+			AverageFemaleAge:   *task.AverageFemaleAge,
 		},
 	}, nil
 }

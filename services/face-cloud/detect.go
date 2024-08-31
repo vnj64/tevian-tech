@@ -13,7 +13,6 @@ import (
 
 const (
 	minWorkers = 4
-	maxWorkers = 16
 )
 
 func queryParameters() string {
@@ -69,72 +68,106 @@ func (s service) processImage(token string, imageAddress string) (map[string]int
 	return resultObj, nil
 }
 
-func (s service) Detect(token string, task *models.Task) (models.DetectResult, error) {
-	if task.ImageAddress == nil {
-		return models.DetectResult{}, fmt.Errorf("task has no image address")
-	}
-
+func (s service) Detect(token string, images []models.Image) (models.DetectResult, error) {
 	resultsChan := make(chan map[string]interface{})
 	errChan := make(chan error)
-	taskQueue := make(chan string, 1)
+	taskQueue := make(chan models.Image, len(images))
 
 	workerCount := minWorkers
+	if len(images) < minWorkers {
+		workerCount = len(images)
+	}
 	var wg sync.WaitGroup
-	// тут подумать по реализации gracefully shutdown
+
 	for i := 0; i < workerCount; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for imageAddress := range taskQueue {
-				result, err := s.processImage(token, imageAddress)
+			for image := range taskQueue {
+				result, err := s.processImage(token, image.ImageAddress)
 				if err != nil {
 					errChan <- err
 					continue
 				}
+				result["imageName"] = image.ImageName
 				resultsChan <- result
 			}
 		}()
 	}
 
-	taskQueue <- *task.ImageAddress
+	for _, image := range images {
+		taskQueue <- image
+	}
+	close(taskQueue)
 
 	go func() {
 		wg.Wait()
 		close(resultsChan)
 		close(errChan)
-		close(taskQueue)
 	}()
 
 	var finalResult models.DetectResult
 	var finalError error
 
-	select {
-	case result := <-resultsChan:
-		fmt.Println(result)
-		finalResult = parseResponse(result, task)
-	case err := <-errChan:
-		finalError = err
+	for result := range resultsChan {
+		imageName := result["imageName"].(string)
+		finalResult.ImageData = append(finalResult.ImageData, parseImageResult(result, imageName))
 	}
 
-	fmt.Println(finalResult)
+	select {
+	case err := <-errChan:
+		finalError = err
+	default:
+		finalResult.Status = models.StatusCompleted
+	}
+
 	return finalResult, finalError
 }
 
-func parseResponse(info map[string]interface{}, task *models.Task) models.DetectResult {
-	data := info["data"].([]interface{})
-	var images []models.ImageData
-	var stats models.Statistics
-	var totalMaleAge, totalFemaleAge float64
-	var totalMales, totalFemales int
+func parseImageResult(info map[string]interface{}, imageName string) models.ImageData {
+	data, ok := info["data"].([]interface{})
+	if !ok {
+		fmt.Printf("data field is not of type []interface{}: %v\n", info["data"])
+		return models.ImageData{Name: imageName}
+	}
+
+	var faces []models.Faces
 
 	for _, entry := range data {
-		person := entry.(map[string]interface{})
-		imageName := task.ImageName
-		bbox := person["bbox"].(map[string]interface{})
+		person, ok := entry.(map[string]interface{})
+		if !ok {
+			fmt.Printf("person entry is not of type map[string]interface{}: %v\n", entry)
+			continue
+		}
 
-		demographics := person["demographics"].(map[string]interface{})
-		age := demographics["age"].(map[string]interface{})["mean"].(float64)
-		gender := demographics["gender"].(string)
+		bbox, ok := person["bbox"].(map[string]interface{})
+		if !ok {
+			fmt.Printf("bbox field is not of type map[string]interface{}: %v\n", person["bbox"])
+			continue
+		}
+
+		demographics, ok := person["demographics"].(map[string]interface{})
+		if !ok {
+			fmt.Printf("demographics field is not of type map[string]interface{}: %v\n", person["demographics"])
+			continue
+		}
+
+		ageMap, ok := demographics["age"].(map[string]interface{})
+		if !ok {
+			fmt.Printf("age field is not of type map[string]interface{}: %v\n", demographics["age"])
+			continue
+		}
+		age, ok := ageMap["mean"].(float64)
+		if !ok {
+			fmt.Printf("mean age field is not of type float64: %v\n", ageMap["mean"])
+			continue
+		}
+
+		gender, ok := demographics["gender"].(string)
+		if !ok {
+			fmt.Printf("gender field is not of type string: %v\n", demographics["gender"])
+			continue
+		}
 
 		face := models.Faces{
 			BoundingBox: models.BoundingBox{
@@ -147,45 +180,11 @@ func parseResponse(info map[string]interface{}, task *models.Task) models.Detect
 			Age:    age,
 		}
 
-		stats.TotalFaces++
-		if gender == "male" {
-			totalMales++
-			totalMaleAge += age
-		} else if gender == "female" {
-			totalFemales++
-			totalFemaleAge += age
-		}
-
-		imageFound := false
-		for i := range images {
-			if images[i].Name == *imageName {
-				images[i].Faces = append(images[i].Faces, face)
-				imageFound = true
-				break
-			}
-		}
-
-		if !imageFound {
-			images = append(images, models.ImageData{
-				Name:  *imageName,
-				Faces: []models.Faces{face},
-			})
-		}
+		faces = append(faces, face)
 	}
 
-	if totalMales > 0 {
-		stats.AverageMaleAge = totalMaleAge / float64(totalMales)
-	}
-	if totalFemales > 0 {
-		stats.AverageFemaleAge = totalFemaleAge / float64(totalFemales)
-	}
-	stats.TotalMales = totalMales
-	stats.TotalFemales = totalFemales
-
-	return models.DetectResult{
-		TaskId:     task.Id,
-		Status:     models.StatusCompleted,
-		ImageData:  images,
-		Statistics: stats,
+	return models.ImageData{
+		Name:  imageName,
+		Faces: faces,
 	}
 }

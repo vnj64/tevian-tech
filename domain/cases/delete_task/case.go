@@ -19,12 +19,19 @@ func Run(c domain.Context, r Request) error {
 	}
 
 	if task.Status == models.StatusProcessing {
-		return errors.New("cant delete task, which still processing")
+		return errors.New("can't delete task which is still processing")
 	}
 
-	if task.ImageAddress != nil {
-		if err := os.Remove(*task.ImageAddress); err != nil {
-			return fmt.Errorf("cannot delete this image task: %v", err)
+	images, err := c.Connection().Image().WhereTaskId(task.Id)
+	if err != nil {
+		return fmt.Errorf("error fetching images for task [%s]: %v", r.Id, err)
+	}
+
+	for _, image := range images {
+		if image.ImageAddress != "" {
+			if err := os.Remove(image.ImageAddress); err != nil {
+				return fmt.Errorf("cannot delete image file [%s]: %v", image.ImageAddress, err)
+			}
 		}
 	}
 

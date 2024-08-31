@@ -16,13 +16,14 @@ type Response struct {
 }
 
 func Run(c domain.Context, r Request) (*Response, error) {
-	task, err := c.Connection().Task().WhereId(r.Id)
+	_, err := c.Connection().Task().WhereId(r.Id)
 	if err != nil {
 		return nil, fmt.Errorf("task with id [%s] does not exist: %v", r.Id, err)
 	}
 
-	if task.ImageAddress == nil {
-		return nil, fmt.Errorf("image address for task with id [%s] is not set", r.Id)
+	images, err := c.Connection().Image().WhereTaskId(r.Id)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching images for task [%s]: %v", r.Id, err)
 	}
 
 	updates := make(map[string]interface{})
@@ -31,14 +32,14 @@ func Run(c domain.Context, r Request) (*Response, error) {
 		return nil, fmt.Errorf("error updating task status to processing: %v", err)
 	}
 
-	go processTask(c, r.Id, task)
+	go processTask(c, r.Id, images)
 
 	return &Response{
 		Message: "Task is successfully processing.",
 	}, nil
 }
 
-func processTask(c domain.Context, taskId string, task *models.Task) {
+func processTask(c domain.Context, taskId string, images []models.Image) {
 	config := c.Services().Config()
 	token, err := c.Services().FaceCloud().GetAccessToken(config.CloudLogin(), config.CloudPassword())
 	if err != nil {
@@ -47,19 +48,45 @@ func processTask(c domain.Context, taskId string, task *models.Task) {
 		return
 	}
 
-	result, err := c.Services().FaceCloud().Detect(token, task)
+	result, err := c.Services().FaceCloud().Detect(token, images)
 	if err != nil {
 		updateTaskStatus(c, taskId, models.StatusFailed)
 		fmt.Printf("error during image detection: %v\n", err)
 		return
 	}
 
-	if err := saveTaskResults(c, taskId, result); err != nil {
-		updateTaskStatus(c, taskId, models.StatusFailed)
-		fmt.Printf("error saving task results: %v\n", err)
-		return
+	imageIdMap := make(map[string]string)
+	for _, image := range images {
+		imageIdMap[image.ImageName] = image.Id
 	}
 
+	for _, imgData := range result.ImageData {
+		imageId, exists := imageIdMap[imgData.Name]
+		if !exists {
+			fmt.Printf("no image ID found for image name: %s\n", imgData.Name)
+			continue
+		}
+
+		for _, face := range imgData.Faces {
+			faceModel := models.Face{
+				Id:      uuid.New().String(),
+				ImageId: imageId,
+				Bbox:    fmt.Sprintf("%d,%d,%d,%d", face.BoundingBox.X, face.BoundingBox.Y, face.BoundingBox.Width, face.BoundingBox.Height),
+				Gender:  face.Gender,
+				Age:     face.Age,
+			}
+
+			if _, err := c.Connection().Face().Insert(faceModel); err != nil {
+				updateTaskStatus(c, taskId, models.StatusFailed)
+				fmt.Printf("error inserting face: %v\n", err)
+				return
+			}
+		}
+	}
+	_, err = makeCalculateStatistics(c, taskId, images)
+	if err != nil {
+		return
+	}
 	updateTaskStatus(c, taskId, models.StatusCompleted)
 }
 
@@ -72,45 +99,48 @@ func updateTaskStatus(c domain.Context, taskId string, status models.TaskStatus)
 	}
 }
 
-func saveTaskResults(c domain.Context, taskId string, result models.DetectResult) error {
-	for _, imgData := range result.ImageData {
-		image := models.Image{
-			Id:     uuid.New().String(),
-			TaskId: taskId,
-			Name:   imgData.Name,
-		}
+func makeCalculateStatistics(c domain.Context, taskId string, images []models.Image) (models.Statistics, error) {
+	var stats models.Statistics
+	var totalMaleAge, totalFemaleAge float64
 
-		imageId, err := c.Connection().Image().Insert(image)
+	for _, image := range images {
+		faces, err := c.Connection().Face().WhereImageId(image.Id)
 		if err != nil {
-			return fmt.Errorf("error inserting image: %v", err)
+			return models.Statistics{}, err
 		}
 
-		for _, face := range imgData.Faces {
-			faceModel := models.Face{
-				Id:      uuid.New().String(),
-				ImageId: imageId,
-				Bbox:    fmt.Sprintf("%d,%d,%d,%d", face.BoundingBox.X, face.BoundingBox.Y, face.BoundingBox.Width, face.BoundingBox.Height),
-				Gender:  face.Gender,
-				Age:     int(face.Age),
-			}
-
-			if _, err := c.Connection().Face().Insert(faceModel); err != nil {
-				return fmt.Errorf("error inserting face: %v", err)
+		for _, face := range faces {
+			stats.TotalFaces++
+			if face.Gender == "male" {
+				stats.TotalMales++
+				totalMaleAge += face.Age
+			} else if face.Gender == "female" {
+				stats.TotalFemales++
+				totalFemaleAge += face.Age
 			}
 		}
+	}
+
+	if stats.TotalMales > 0 {
+		stats.AverageMaleAge = totalMaleAge / float64(stats.TotalMales)
+	}
+
+	if stats.TotalFemales > 0 {
+		stats.AverageFemaleAge = totalFemaleAge / float64(stats.TotalFemales)
 	}
 
 	taskUpdates := map[string]interface{}{
-		"all_faces_quantity": result.Statistics.TotalFaces,
-		"male_quantity":      result.Statistics.TotalMales,
-		"female_quantity":    result.Statistics.TotalFemales,
-		"average_male_age":   result.Statistics.AverageMaleAge,
-		"average_female_age": result.Statistics.AverageFemaleAge,
+		"all_faces_quantity": stats.TotalFaces,
+		"male_quantity":      stats.TotalMales,
+		"female_quantity":    stats.TotalFemales,
+		"average_male_age":   stats.AverageMaleAge,
+		"average_female_age": stats.AverageFemaleAge,
 	}
 
 	if err := c.Connection().Task().Update(taskId, taskUpdates); err != nil {
-		return fmt.Errorf("error updating task statistics: %v", err)
+		updateTaskStatus(c, taskId, models.StatusFailed)
+		fmt.Printf("error updating task statistics: %v", err)
 	}
 
-	return nil
+	return stats, nil
 }

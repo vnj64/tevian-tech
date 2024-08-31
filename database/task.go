@@ -13,8 +13,6 @@ type taskRepository struct {
 type task struct {
 	Id               string
 	Status           models.TaskStatus
-	ImageAddress     *string
-	ImageName        *string
 	AllFacesQuantity *int
 	MaleQuantity     *int
 	FemaleQuantity   *int
@@ -26,8 +24,6 @@ func (t task) model() *models.Task {
 	return &models.Task{
 		Id:               t.Id,
 		Status:           t.Status,
-		ImageAddress:     t.ImageAddress,
-		ImageName:        t.ImageName,
 		AllFacesQuantity: t.AllFacesQuantity,
 		MaleQuantity:     t.MaleQuantity,
 		FemaleQuantity:   t.FemaleQuantity,
@@ -40,8 +36,6 @@ func makeTask(t models.Task) *models.Task {
 	return &models.Task{
 		Id:               t.Id,
 		Status:           t.Status,
-		ImageAddress:     t.ImageAddress,
-		ImageName:        t.ImageName,
 		AllFacesQuantity: t.AllFacesQuantity,
 		MaleQuantity:     t.MaleQuantity,
 		FemaleQuantity:   t.FemaleQuantity,
