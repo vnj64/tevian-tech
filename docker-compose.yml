@@ -18,7 +18,7 @@ services:
     networks:
       - tevian_net
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "tevian"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -52,7 +52,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: [ "-path", "/migrations", "-database", "postgresql://tevian:tevian@db:5432/postgres?sslmode=disable", "up", "3" ]
+    command: ["-path", "/migrations", "-database", "postgresql://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_HOST}:${POSTGRESQL_PORT}/${POSTGRESQL_DATABASE}?sslmode=disable", "up", "3"]
 
 volumes:
   db_data:
