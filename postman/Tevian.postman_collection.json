@@ -1,0 +1,430 @@
+{
+	"info": {
+		"_postman_id": "604b304f-dde8-4044-a7da-724126b12948",
+		"name": "Tevian",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18367205"
+	},
+	"item": [
+		{
+			"name": "Добавить задание",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"task\": {\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/v1/task",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"task"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"task\": {\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/v1/task",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"v1",
+								"task"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 31 Aug 2024 13:36:03 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "83"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"response\": {\n        \"status\": 200\n    },\n    \"payload\": {\n        \"id\": \"a2aba103-4b23-4f41-ba44-a29d26ebd405\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Добавить изображение в задание",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "body",
+							"type": "file",
+							"src": "/C:/Users/user/Downloads/1698678411_klev-club-p-kartinki-kvadratnii-chelovek-37.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:8080/api/v1/task/88288ad9-b1e4-4296-a942-3c231750ebd3/upload_image",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"task",
+						"88288ad9-b1e4-4296-a942-3c231750ebd3",
+						"upload_image"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "body",
+									"type": "file",
+									"src": "/C:/Users/user/Downloads/1698678411_klev-club-p-kartinki-kvadratnii-chelovek-37.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:3000/api/v1/task/a2aba103-4b23-4f41-ba44-a29d26ebd405/upload_image",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"v1",
+								"task",
+								"a2aba103-4b23-4f41-ba44-a29d26ebd405",
+								"upload_image"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 31 Aug 2024 13:36:21 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "27"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"response\": {\n        \"status\": 200\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Отправить задание в обработку.",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/v1/task/88288ad9-b1e4-4296-a942-3c231750ebd3/start_task",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"task",
+						"88288ad9-b1e4-4296-a942-3c231750ebd3",
+						"start_task"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/api/v1/task/a2aba103-4b23-4f41-ba44-a29d26ebd405/start_task",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"v1",
+								"task",
+								"a2aba103-4b23-4f41-ba44-a29d26ebd405",
+								"start_task"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 31 Aug 2024 13:36:28 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "84"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"response\": {\n        \"status\": 200\n    },\n    \"payload\": {\n        \"message\": \"Task is successfully processing.\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Удалить задание.",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/v1/task/6f561434-3ca7-4961-8c40-5252a83b7f7b",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"task",
+						"6f561434-3ca7-4961-8c40-5252a83b7f7b"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/api/v1/task/a2aba103-4b23-4f41-ba44-a29d26ebd405",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"v1",
+								"task",
+								"a2aba103-4b23-4f41-ba44-a29d26ebd405"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 31 Aug 2024 11:05:37 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "27"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"response\": {\n        \"status\": 200\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Получить задание",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/api/v1/task/88288ad9-b1e4-4296-a942-3c231750ebd3",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"task",
+						"88288ad9-b1e4-4296-a942-3c231750ebd3"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/api/v1/task/a2aba103-4b23-4f41-ba44-a29d26ebd405",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"v1",
+								"task",
+								"a2aba103-4b23-4f41-ba44-a29d26ebd405"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 31 Aug 2024 13:36:39 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2202"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"response\": {\n        \"status\": 200\n    },\n    \"payload\": {\n        \"taskId\": \"a2aba103-4b23-4f41-ba44-a29d26ebd405\",\n        \"taskStatus\": \"COMPLETED\",\n        \"images\": [\n            {\n                \"id\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                \"task\": \"a2aba103-4b23-4f41-ba44-a29d26ebd405\",\n                \"imageName\": \"e5b53e89-0066-4760-b12c-db8fd195b300.jpg.jpg\",\n                \"imageAddress\": \"images/e5b53e89-0066-4760-b12c-db8fd195b300.jpg\"\n            },\n            {\n                \"id\": \"43288ace-ef39-4351-a31a-8b94c24bfcda\",\n                \"task\": \"a2aba103-4b23-4f41-ba44-a29d26ebd405\",\n                \"imageName\": \"e26a2e08-6aff-40b9-8c9e-ce1a1a6c37c0.jpg.jpg\",\n                \"imageAddress\": \"images/e26a2e08-6aff-40b9-8c9e-ce1a1a6c37c0.jpg\"\n            }\n        ],\n        \"faces\": {\n            \"43288ace-ef39-4351-a31a-8b94c24bfcda\": [\n                {\n                    \"id\": \"ed068ab9-eb32-40ac-b2a4-3db8535a7650\",\n                    \"imageId\": \"43288ace-ef39-4351-a31a-8b94c24bfcda\",\n                    \"bbox\": \"443,289,353,522\",\n                    \"gender\": \"male\",\n                    \"age\": 26\n                }\n            ],\n            \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\": [\n                {\n                    \"id\": \"87952e20-fe36-46a4-9025-cdc3f8b52060\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"-1,717,261,273\",\n                    \"gender\": \"male\",\n                    \"age\": 20\n                },\n                {\n                    \"id\": \"6fe1fdf8-4b2f-48c5-9ecd-f5a65aa25ca4\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"1016,714,277,244\",\n                    \"gender\": \"male\",\n                    \"age\": 38\n                },\n                {\n                    \"id\": \"8e29e66f-974f-41b9-bebf-b8303a7eea84\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"1151,368,220,241\",\n                    \"gender\": \"female\",\n                    \"age\": 29\n                },\n                {\n                    \"id\": \"d8ba6aac-39ea-4972-9f7c-ef62ed057647\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"633,749,200,221\",\n                    \"gender\": \"male\",\n                    \"age\": 28\n                },\n                {\n                    \"id\": \"7e25f0f6-240b-4260-8681-180075226d9d\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"512,347,176,212\",\n                    \"gender\": \"male\",\n                    \"age\": 34\n                },\n                {\n                    \"id\": \"5d23dbe5-17be-43f7-be9f-d535fc5b4606\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"317,391,160,201\",\n                    \"gender\": \"female\",\n                    \"age\": 24\n                },\n                {\n                    \"id\": \"93dc08ab-fcaa-497d-b156-458ce2b64a64\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"937,446,179,177\",\n                    \"gender\": \"female\",\n                    \"age\": 33\n                },\n                {\n                    \"id\": \"cce21670-772d-41b7-925f-e5a749e781e2\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"782,461,143,216\",\n                    \"gender\": \"female\",\n                    \"age\": 28\n                },\n                {\n                    \"id\": \"bdd725b3-d80e-40fe-8969-c214c64d43e3\",\n                    \"imageId\": \"88b6b5bd-f0e1-4f05-9b0d-8358b7f098ea\",\n                    \"bbox\": \"658,146,145,180\",\n                    \"gender\": \"female\",\n                    \"age\": 26\n                }\n            ]\n        },\n        \"statistics\": {\n            \"allFacesQuantity\": 10,\n            \"allMales\": 5,\n            \"averageMaleAge\": 29.2,\n            \"averageFemaleAge\": 28\n        }\n    }\n}"
+				}
+			]
+		}
+	]
+}

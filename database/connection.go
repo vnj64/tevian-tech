@@ -26,6 +26,7 @@ func makeConnection(db *gorm.DB) *connection {
 }
 
 func Make(user, password, host, port, database string) (domain.Connection, error) {
+	// postgresql://tevian:tevian@db:5432/postgres
 	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s",
 		user,
 		password,

@@ -52,7 +52,7 @@ func Run(c domain.Context, r Request) error {
 	img := models.Image{
 		Id:           uuid.New().String(),
 		TaskId:       r.Id,
-		ImageName:    r.ImageName + ".jpg",
+		ImageName:    r.ImageName,
 		ImageAddress: fmt.Sprintf("images/%s", r.ImageName),
 	}
 

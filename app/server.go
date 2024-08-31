@@ -62,7 +62,7 @@ func (s *HttpServer) Start() {
 		task.Get("/:id", v1.WrapHandler(v1.GetTaskHandler))
 	}
 
-	err := s.app.Listen(":3000")
+	err := s.app.Listen(":8080")
 	if err != nil {
 		panic(err)
 	}

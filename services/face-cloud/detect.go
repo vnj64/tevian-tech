@@ -125,49 +125,17 @@ func (s service) Detect(token string, images []models.Image) (models.DetectResul
 }
 
 func parseImageResult(info map[string]interface{}, imageName string) models.ImageData {
-	data, ok := info["data"].([]interface{})
-	if !ok {
-		fmt.Printf("data field is not of type []interface{}: %v\n", info["data"])
-		return models.ImageData{Name: imageName}
-	}
+	data := info["data"].([]interface{})
 
 	var faces []models.Faces
 
 	for _, entry := range data {
-		person, ok := entry.(map[string]interface{})
-		if !ok {
-			fmt.Printf("person entry is not of type map[string]interface{}: %v\n", entry)
-			continue
-		}
-
-		bbox, ok := person["bbox"].(map[string]interface{})
-		if !ok {
-			fmt.Printf("bbox field is not of type map[string]interface{}: %v\n", person["bbox"])
-			continue
-		}
-
-		demographics, ok := person["demographics"].(map[string]interface{})
-		if !ok {
-			fmt.Printf("demographics field is not of type map[string]interface{}: %v\n", person["demographics"])
-			continue
-		}
-
-		ageMap, ok := demographics["age"].(map[string]interface{})
-		if !ok {
-			fmt.Printf("age field is not of type map[string]interface{}: %v\n", demographics["age"])
-			continue
-		}
-		age, ok := ageMap["mean"].(float64)
-		if !ok {
-			fmt.Printf("mean age field is not of type float64: %v\n", ageMap["mean"])
-			continue
-		}
-
-		gender, ok := demographics["gender"].(string)
-		if !ok {
-			fmt.Printf("gender field is not of type string: %v\n", demographics["gender"])
-			continue
-		}
+		person := entry.(map[string]interface{})
+		bbox := person["bbox"].(map[string]interface{})
+		demographics := person["demographics"].(map[string]interface{})
+		ageMap := demographics["age"].(map[string]interface{})
+		age := ageMap["mean"].(float64)
+		gender := demographics["gender"].(string)
 
 		face := models.Faces{
 			BoundingBox: models.BoundingBox{

@@ -13,7 +13,6 @@ type Request struct {
 type Response struct {
 	TaskId     string                   `json:"taskId"`
 	TaskStatus models.TaskStatus        `json:"taskStatus"`
-	Images     []models.Image           `json:"images"`
 	Faces      map[string][]models.Face `json:"faces"`
 	Statistics StatsAdditional          `json:"statistics"`
 }
@@ -42,13 +41,12 @@ func Run(c domain.Context, r Request) (*Response, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error fetching faces for image with id [%s]: %v", image.Id, err)
 		}
-		facesByImage[image.Id] = imageFaces
+		facesByImage[image.ImageName] = imageFaces
 	}
 
 	return &Response{
 		TaskId:     task.Id,
 		TaskStatus: task.Status,
-		Images:     images,
 		Faces:      facesByImage,
 		Statistics: StatsAdditional{
 			AllFacesQuantity:   *task.AllFacesQuantity,

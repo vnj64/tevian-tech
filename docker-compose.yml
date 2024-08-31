@@ -1,6 +1,28 @@
 version: "3.8"
 
+networks:
+  tevian_net:
+
 services:
+  db:
+    container_name: db_tevian
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=${POSTGRESQL_DATABASE}
+      - POSTGRES_USER=${POSTGRESQL_USER}
+      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - tevian_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "tevian"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     container_name: api_tevian
     build:
@@ -12,21 +34,25 @@ services:
     environment:
       - CLOUD_PASSWORD=${CLOUD_PASSWORD}
       - CLOUD_LOGIN=${CLOUD_LOGIN}
+      - SERVICE_LOGIN=${SERVICE_LOGIN}
+      - SERVICE_PASSWORD=${SERVICE_PASSWORD}
     depends_on:
-      - db
-  db:
-    container_name: db_tevian
-    image: postgres:15
-    environment:
-      - POSTGRES_DATABASE=${POSTGRESQL_DATABASE}
-      - POSTGRES_USER=${POSTGRESQL_USER}
-      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRES_PORT=${POSTGRESQL_PORT}
-      - POSTGRES_HOST=${POSTGRESQL_HOST}
-    ports:
-      - "5432:5432"
+      db:
+        condition: service_healthy
+    networks:
+      - tevian_net
+
+  migrate:
+    restart: on-failure
+    image: migrate/migrate
+    networks:
+      - tevian_net
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./database/migrations:/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+    command: [ "-path", "/migrations", "-database", "postgresql://tevian:tevian@db:5432/postgres?sslmode=disable", "up", "3" ]
 
 volumes:
   db_data:
