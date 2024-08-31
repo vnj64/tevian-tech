@@ -51,12 +51,15 @@ func (s *HttpServer) Start() {
 		return ctx.Next()
 	})
 
+	s.app.Use(MiddlewareAuthRequired(domainContext))
+
 	task := s.app.Group("/api/v1/task")
 	{
 		task.Post("", v1.WrapHandler(v1.CreateTaskHandler))
 		task.Post("/:id/upload_image", v1.WrapHandler(v1.UploadTaskImageHandler))
 		task.Delete("/:id", v1.WrapHandler(v1.DeleteTaskHandler))
 		task.Post("/:id/start_task", v1.WrapHandler(v1.StartTaskHandler))
+		task.Get("/:id", v1.WrapHandler(v1.GetTaskHandler))
 	}
 
 	err := s.app.Listen(":3000")

@@ -9,4 +9,6 @@ type Config interface {
 	PostgresqlPassword() string
 	PostgresqlDatabase() string
 	BaseFaceCloudUrl() string
+	ServiceLogin() string
+	ServicePassword() string
 }

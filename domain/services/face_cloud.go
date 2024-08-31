@@ -5,6 +5,6 @@ import (
 )
 
 type FaceCloud interface {
-	Detect(token string, imageAddresses []string) ([]*models.ResultData, error)
+	Detect(token string, tasks *models.Task) (models.DetectResult, error)
 	GetAccessToken(cloudLogin, cloudPassword string) (string, error)
 }

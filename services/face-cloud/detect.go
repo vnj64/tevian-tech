@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	minWorkers = 4  // Минимальное количество горутин
-	maxWorkers = 16 // Максимальное количество горутин
+	minWorkers = 4
+	maxWorkers = 16
 )
 
 func queryParameters() string {
@@ -33,22 +33,16 @@ func queryParameters() string {
 	return params.Encode()
 }
 
-func (s service) processImage(token string, imageAddress string, wg *sync.WaitGroup, results chan<- *models.ResultData, errChan chan<- error) {
-	defer wg.Done()
-
+func (s service) processImage(token string, imageAddress string) (map[string]interface{}, error) {
 	file, err := os.Open(imageAddress)
 	if err != nil {
-		{
-			errChan <- fmt.Errorf("cant open file: %v", err)
-			return
-		}
+		return nil, fmt.Errorf("can't open file %s: %v", imageAddress, err)
 	}
 	defer file.Close()
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/detect?%s", s.cfg.BaseFaceCloudUrl(), queryParameters()), file)
 	if err != nil {
-		errChan <- fmt.Errorf("error creating request: %v", err)
-		return
+		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	req.Header.Add("Content-Type", "image/jpeg")
@@ -57,65 +51,141 @@ func (s service) processImage(token string, imageAddress string, wg *sync.WaitGr
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		errChan <- fmt.Errorf("error making request: %v", err)
-		return
+		return nil, fmt.Errorf("error making request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	result, err := io.ReadAll(resp.Body)
 	if err != nil {
-		errChan <- fmt.Errorf("error reading response body: %v", err)
-		return
+		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
 
-	var fnResult models.ResultData
-	err = json.Unmarshal(result, &fnResult)
+	var resultObj map[string]interface{}
+	err = json.Unmarshal(result, &resultObj)
 	if err != nil {
-		errChan <- fmt.Errorf("error unmarshaling: %v", err)
-		return
+		return nil, fmt.Errorf("error unmarshaling JSON: %v", err)
 	}
 
-	results <- &fnResult
+	return resultObj, nil
 }
 
-func (s service) Detect(token string, imageAddresses []string) ([]*models.ResultData, error) {
-	var wg sync.WaitGroup
-	results := make(chan *models.ResultData, len(imageAddresses))
-	errChan := make(chan error, len(imageAddresses))
-
-	workerCount := minWorkers
-	if len(imageAddresses) < minWorkers {
-		workerCount = len(imageAddresses)
-	} else if len(imageAddresses) > maxWorkers {
-		workerCount = maxWorkers
+func (s service) Detect(token string, task *models.Task) (models.DetectResult, error) {
+	if task.ImageAddress == nil {
+		return models.DetectResult{}, fmt.Errorf("task has no image address")
 	}
 
+	resultsChan := make(chan map[string]interface{})
+	errChan := make(chan error)
+	taskQueue := make(chan string, 1)
+
+	workerCount := minWorkers
+	var wg sync.WaitGroup
+	// тут подумать по реализации gracefully shutdown
 	for i := 0; i < workerCount; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for _, imageAddress := range imageAddresses {
-				wg.Add(1)
-				go s.processImage(token, imageAddress, &wg, results, errChan)
+			for imageAddress := range taskQueue {
+				result, err := s.processImage(token, imageAddress)
+				if err != nil {
+					errChan <- err
+					continue
+				}
+				resultsChan <- result
 			}
 		}()
 	}
 
-	wg.Wait()
-	close(results)
-	close(errChan)
+	taskQueue <- *task.ImageAddress
 
-	var finalResults []*models.ResultData
-	for result := range results {
-		finalResults = append(finalResults, result)
+	go func() {
+		wg.Wait()
+		close(resultsChan)
+		close(errChan)
+		close(taskQueue)
+	}()
+
+	var finalResult models.DetectResult
+	var finalError error
+
+	select {
+	case result := <-resultsChan:
+		fmt.Println(result)
+		finalResult = parseResponse(result, task)
+	case err := <-errChan:
+		finalError = err
 	}
 
-	var finalError error
-	for err := range errChan {
-		if finalError == nil {
-			finalError = err
+	fmt.Println(finalResult)
+	return finalResult, finalError
+}
+
+func parseResponse(info map[string]interface{}, task *models.Task) models.DetectResult {
+	data := info["data"].([]interface{})
+	var images []models.ImageData
+	var stats models.Statistics
+	var totalMaleAge, totalFemaleAge float64
+	var totalMales, totalFemales int
+
+	for _, entry := range data {
+		person := entry.(map[string]interface{})
+		imageName := task.ImageName
+		bbox := person["bbox"].(map[string]interface{})
+
+		demographics := person["demographics"].(map[string]interface{})
+		age := demographics["age"].(map[string]interface{})["mean"].(float64)
+		gender := demographics["gender"].(string)
+
+		face := models.Faces{
+			BoundingBox: models.BoundingBox{
+				X:      int(bbox["x"].(float64)),
+				Y:      int(bbox["y"].(float64)),
+				Width:  int(bbox["width"].(float64)),
+				Height: int(bbox["height"].(float64)),
+			},
+			Gender: gender,
+			Age:    age,
+		}
+
+		stats.TotalFaces++
+		if gender == "male" {
+			totalMales++
+			totalMaleAge += age
+		} else if gender == "female" {
+			totalFemales++
+			totalFemaleAge += age
+		}
+
+		imageFound := false
+		for i := range images {
+			if images[i].Name == *imageName {
+				images[i].Faces = append(images[i].Faces, face)
+				imageFound = true
+				break
+			}
+		}
+
+		if !imageFound {
+			images = append(images, models.ImageData{
+				Name:  *imageName,
+				Faces: []models.Faces{face},
+			})
 		}
 	}
 
-	return finalResults, finalError
+	if totalMales > 0 {
+		stats.AverageMaleAge = totalMaleAge / float64(totalMales)
+	}
+	if totalFemales > 0 {
+		stats.AverageFemaleAge = totalFemaleAge / float64(totalFemales)
+	}
+	stats.TotalMales = totalMales
+	stats.TotalFemales = totalFemales
+
+	return models.DetectResult{
+		TaskId:     task.Id,
+		Status:     models.StatusCompleted,
+		ImageData:  images,
+		Statistics: stats,
+	}
 }

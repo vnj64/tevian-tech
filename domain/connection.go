@@ -6,4 +6,6 @@ import (
 
 type Connection interface {
 	Task() repositories.Task
+	Face() repositories.Face
+	Image() repositories.Image
 }

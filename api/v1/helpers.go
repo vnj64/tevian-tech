@@ -65,13 +65,6 @@ func BadRequest(err error) *RawResponse {
 	}
 }
 
-func Forbidden(err error) *RawResponse {
-	return &RawResponse{
-		status: http.StatusForbidden,
-		error:  err,
-	}
-}
-
 func (r *RawResponse) WithExtraCode(code int) *RawResponse {
 	r.status = code
 	return r

@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"tevian/domain"
+	"tevian/domain/models"
 )
 
 type Request struct {
@@ -16,9 +17,13 @@ type Request struct {
 }
 
 func Run(c domain.Context, r Request) error {
-	_, err := c.Connection().Task().WhereId(r.Id)
+	task, err := c.Connection().Task().WhereId(r.Id)
 	if err != nil {
 		return fmt.Errorf("task with id [%s] does not exist due [%v]", r.Id, err)
+	}
+
+	if task.Status == models.StatusProcessing || task.Status == models.StatusCompleted {
+		return fmt.Errorf("unavailable to upload image to this task: status is %s", task.Status)
 	}
 
 	r.ImageName = uuid.New().String() + ".jpg"

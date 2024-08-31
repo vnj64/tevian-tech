@@ -11,13 +11,17 @@ import (
 type connection struct {
 	db *gorm.DB
 
-	taskRepository repositories.Task
+	taskRepository  repositories.Task
+	faceRepository  repositories.Face
+	imageRepository repositories.Image
 }
 
 func makeConnection(db *gorm.DB) *connection {
 	return &connection{
-		db:             db,
-		taskRepository: &taskRepository{db},
+		db:              db,
+		taskRepository:  &taskRepository{db},
+		faceRepository:  &faceRepository{db},
+		imageRepository: &imageRepository{db},
 	}
 }
 
@@ -49,4 +53,12 @@ func Make(user, password, host, port, database string) (domain.Connection, error
 
 func (c connection) Task() repositories.Task {
 	return c.taskRepository
+}
+
+func (c connection) Face() repositories.Face {
+	return c.faceRepository
+}
+
+func (c connection) Image() repositories.Image {
+	return c.imageRepository
 }

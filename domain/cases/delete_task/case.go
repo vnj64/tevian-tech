@@ -3,6 +3,7 @@ package delete_task
 import (
 	"errors"
 	"fmt"
+	"os"
 	"tevian/domain"
 	"tevian/domain/models"
 )
@@ -19,6 +20,12 @@ func Run(c domain.Context, r Request) error {
 
 	if task.Status == models.StatusProcessing {
 		return errors.New("cant delete task, which still processing")
+	}
+
+	if task.ImageAddress != nil {
+		if err := os.Remove(*task.ImageAddress); err != nil {
+			return fmt.Errorf("cannot delete this image task: %v", err)
+		}
 	}
 
 	if err := c.Connection().Task().Delete(r.Id); err != nil {

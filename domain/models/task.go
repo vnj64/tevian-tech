@@ -7,41 +7,49 @@ const (
 	StatusFailed     TaskStatus = "FAILED"
 )
 
-const (
-	GenderMale   Gender = "Male"
-	GenderFemale Gender = "Female"
-)
-
 type TaskStatus string
-type Gender string
 
 type Task struct {
-	Id           string     `json:"id"`
-	Status       TaskStatus `json:"status"`
-	ImageAddress string     `json:"imageAddress"`
-	ImageName    string     `json:"imageName"`
+	Id               string     `json:"id"`
+	Status           TaskStatus `json:"status"`
+	ImageAddress     *string    `json:"imageAddress"`
+	ImageName        *string    `json:"imageName"`
+	AllFacesQuantity *int
+	MaleQuantity     *int
+	FemaleQuantity   *int
+	AverageMaleAge   *float64
+	AverageFemaleAge *float64
 }
 
-type ResultData struct {
-	TaskId string     `json:"taskId"`
-	Status TaskStatus `json:"status"`
-	Images struct {
-		Name  string `json:"imageName"`
-		Faces []struct {
-			BBox struct {
-				Height int `json:"height"`
-				Width  int `json:"width"`
-				X      int `json:"x"`
-				Y      int `json:"y"`
-			} `json:"bbox"`
-			FaceGender Gender `json:"faceGender"`
-			Age        uint32 `json:"age"`
-		} `json:"faces"`
-	} `json:"images"`
-	Stats struct {
-		AllFacesQuantity int     `json:"allFacesQuantity"`
-		AverageGender    int     `json:"averageGender"`
-		AverageMaleAge   float32 `json:"averageMaleAge"`
-		AverageFemaleAge float32 `json:"averageFemaleAge"`
-	} `json:"stats"`
+type BoundingBox struct {
+	X      int `json:"x"`
+	Y      int `json:"y"`
+	Width  int `json:"width"`
+	Height int `json:"height"`
+}
+
+type Faces struct {
+	BoundingBox BoundingBox `json:"boundingBox"`
+	Gender      string      `json:"gender"`
+	Age         float64     `json:"age"`
+}
+
+type ImageData struct {
+	Name  string  `json:"name"`
+	Faces []Faces `json:"faces"`
+}
+
+type Statistics struct {
+	TotalFaces       int     `json:"totalFaces"`
+	TotalMales       int     `json:"totalMales"`
+	TotalFemales     int     `json:"totalFemales"`
+	AverageMaleAge   float64 `json:"averageMaleAge"`
+	AverageFemaleAge float64 `json:"averageFemaleAge"`
+}
+
+type DetectResult struct {
+	TaskId     string      `json:"taskId"`
+	Status     TaskStatus  `json:"status"`
+	ImageData  []ImageData `json:"imageData"`
+	Statistics Statistics  `json:"statistics"`
 }

@@ -15,6 +15,8 @@ type service struct {
 	postgresqlPassword string
 	postgresqlDatabase string
 	baseFaceCloudUrl   string
+	serviceLogin       string
+	servicePassword    string
 }
 
 func Make() (services.Config, error) {
@@ -27,8 +29,10 @@ func Make() (services.Config, error) {
 	postgresqlPassword := envFile["POSTGRESQL_PASSWORD"]
 	postgresqlDatabase := envFile["POSTGRESQL_DATABASE"]
 	baseFaceCloudUrl := envFile["BASE_FACE_CLOUD_URL"]
+	serviceLogin := envFile["SERVICE_LOGIN"]
+	servicePassword := envFile["SERVICE_PASSWORD"]
 
-	if cloudLogin == "" || cloudPassword == "" || postgresqlHost == "" || postgresqlPort == "" || postgresqlUser == "" || postgresqlPassword == "" || postgresqlDatabase == "" || baseFaceCloudUrl == "" {
+	if cloudLogin == "" || cloudPassword == "" || postgresqlHost == "" || postgresqlPort == "" || postgresqlUser == "" || postgresqlPassword == "" || postgresqlDatabase == "" || baseFaceCloudUrl == "" || serviceLogin == "" || servicePassword == "" {
 		return nil, errors.New("please check variables on .env")
 	}
 
@@ -41,6 +45,8 @@ func Make() (services.Config, error) {
 		postgresqlPassword: postgresqlPassword,
 		postgresqlDatabase: postgresqlDatabase,
 		baseFaceCloudUrl:   baseFaceCloudUrl,
+		serviceLogin:       serviceLogin,
+		servicePassword:    servicePassword,
 	}, nil
 }
 
@@ -74,4 +80,12 @@ func (s *service) PostgresqlDatabase() string {
 
 func (s *service) BaseFaceCloudUrl() string {
 	return s.baseFaceCloudUrl
+}
+
+func (s *service) ServiceLogin() string {
+	return s.serviceLogin
+}
+
+func (s *service) ServicePassword() string {
+	return s.servicePassword
 }

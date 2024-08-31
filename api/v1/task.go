@@ -1,13 +1,13 @@
 package v1
 
 import (
-	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"io/ioutil"
 	"tevian/domain"
 	"tevian/domain/cases/create_task"
 	"tevian/domain/cases/delete_task"
+	"tevian/domain/cases/get_task"
 	"tevian/domain/cases/start_task"
 	"tevian/domain/cases/upload_task_image"
 )
@@ -62,18 +62,10 @@ func UploadTaskImageHandler(c domain.Context, ctx *fiber.Ctx) *RawResponse {
 }
 
 func DeleteTaskHandler(c domain.Context, ctx *fiber.Ctx) *RawResponse {
-	err := delete_task.Run(c, delete_task.Request{
-		Id: ctx.Params("id"),
-	})
+	var request delete_task.Request
+	request.Id = ctx.Params("id")
 
-	// TODO: надо будет что-то другое придумать
-	if errors.Is(err, errors.New("cant delete task, which still processing")) {
-		return Forbidden(err)
-	}
-
-	if err = delete_task.Run(c, delete_task.Request{
-		Id: ctx.Params("id"),
-	}); err != nil {
+	if err := delete_task.Run(c, request); err != nil {
 		return InternalServerError(err)
 	}
 
@@ -82,6 +74,17 @@ func DeleteTaskHandler(c domain.Context, ctx *fiber.Ctx) *RawResponse {
 
 func StartTaskHandler(c domain.Context, ctx *fiber.Ctx) *RawResponse {
 	result, err := start_task.Run(c, start_task.Request{
+		Id: ctx.Params("id"),
+	})
+	if err != nil {
+		return InternalServerError(err)
+	}
+
+	return OK(result)
+}
+
+func GetTaskHandler(c domain.Context, ctx *fiber.Ctx) *RawResponse {
+	result, err := get_task.Run(c, get_task.Request{
 		Id: ctx.Params("id"),
 	})
 	if err != nil {
