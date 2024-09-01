@@ -3,7 +3,18 @@
 ### `docker compose up -d --build`
 
 ### Остановка проекта
-### `docker compose down (-v optional)`
+### `docker compose stop`
+### Удаление контейнера
+### `docker compose down (-v optionally)`
+
+# Компиляция проекта.
+## !!! При выборе данного способа необходимо после запуска бд, также инициализировать миграции. !!!
+### `migrate -database "DATABASE_URL" -path "MIGRATIONS_PATH" up`
+### Скомпилировать приложение
+### `go build main.go` (бинарный файл)
+### Запуск базы данных и сервиса по отдельности.
+### `docker compose -f docker-compose.yml up -d --build db` (запуск базы данных)
+### `go run main.go` (запуск приложения)
 
 # Настройка переменных окружения.
 В файле .env необходимо поменять переменные **_CLOUD_LOGIN_** и **_CLOUD_PASSWORD_** на свои данные (находящиеся в .env также работают). 

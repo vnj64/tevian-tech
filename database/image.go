@@ -17,48 +17,48 @@ type image struct {
 	ImageAddress string
 }
 
-func (t image) model() *models.Image {
+func (i image) model() *models.Image {
 	return &models.Image{
-		Id:           t.Id,
-		TaskId:       t.TaskId,
-		ImageName:    t.ImageName,
-		ImageAddress: t.ImageAddress,
+		Id:           i.Id,
+		TaskId:       i.TaskId,
+		ImageName:    i.ImageName,
+		ImageAddress: i.ImageAddress,
 	}
 }
 
-func makeImage(t models.Image) *models.Image {
+func makeImage(i models.Image) *models.Image {
 	return &models.Image{
-		Id:           t.Id,
-		TaskId:       t.TaskId,
-		ImageName:    t.ImageName,
-		ImageAddress: t.ImageAddress,
+		Id:           i.Id,
+		TaskId:       i.TaskId,
+		ImageName:    i.ImageName,
+		ImageAddress: i.ImageAddress,
 	}
 }
 
-func (tr *imageRepository) Insert(image models.Image) (string, error) {
+func (ir *imageRepository) Insert(image models.Image) (string, error) {
 	tsk := makeImage(image)
 
-	if err := tr.db.Create(tsk).Error; err != nil {
+	if err := ir.db.Create(tsk).Error; err != nil {
 		return "", fmt.Errorf("unable to create image: %v", err)
 	}
 
 	return tsk.Id, nil
 }
 
-func (tr *imageRepository) WhereId(id string) (*models.Image, error) {
+func (ir *imageRepository) WhereId(id string) (*models.Image, error) {
 	var result image
 
-	if err := tr.db.Where(models.Image{Id: id}).First(&result).Error; err != nil {
+	if err := ir.db.Where(models.Image{Id: id}).First(&result).Error; err != nil {
 		return nil, fmt.Errorf("unable to find image: %v", err)
 	}
 
 	return result.model(), nil
 }
 
-func (tr *imageRepository) WhereTaskId(id string) ([]models.Image, error) {
+func (ir *imageRepository) WhereTaskId(id string) ([]models.Image, error) {
 	var results []image
 
-	if err := tr.db.Where(models.Image{TaskId: id}).Find(&results).Error; err != nil {
+	if err := ir.db.Where(models.Image{TaskId: id}).Find(&results).Error; err != nil {
 		return nil, fmt.Errorf("unable to find image: %v", err)
 	}
 
@@ -71,10 +71,10 @@ func (tr *imageRepository) WhereTaskId(id string) ([]models.Image, error) {
 	return out, nil
 }
 
-func (tr *imageRepository) Update(id string, updates map[string]interface{}) error {
-	return tr.db.Model(&image{Id: id}).Updates(updates).Error
+func (ir *imageRepository) Update(id string, updates map[string]interface{}) error {
+	return ir.db.Model(&image{Id: id}).Updates(updates).Error
 }
 
-func (tr *imageRepository) Delete(id string) error {
-	return tr.db.Delete(&image{Id: id}).Error
+func (ir *imageRepository) Delete(id string) error {
+	return ir.db.Delete(&image{Id: id}).Error
 }

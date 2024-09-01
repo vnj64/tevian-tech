@@ -25,12 +25,14 @@ func (s service) GetAccessToken(cloudLogin, cloudPassword string) (string, error
 		Email:    cloudLogin,
 		Password: cloudPassword,
 	}
+
 	jsonData, err := json.Marshal(body)
 	if err != nil {
 		panic(err)
 	}
 
 	authUrl := fmt.Sprintf("%s/api/v1/login", s.cfg.BaseFaceCloudUrl())
+
 	resp, err := http.Post(authUrl, "application/json", bytes.NewReader(jsonData))
 	if err != nil {
 		panic(err)

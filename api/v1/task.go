@@ -15,8 +15,7 @@ import (
 func CreateTaskHandler(c domain.Context, ctx *fiber.Ctx) *RawResponse {
 	var request create_task.Request
 
-	uid := uuid.New().String()
-	request.Task.Id = uid
+	request.Task.Id = uuid.New().String()
 
 	if err := ctx.BodyParser(&request); err != nil {
 		return BadRequest(err)

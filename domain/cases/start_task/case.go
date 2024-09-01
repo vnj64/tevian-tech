@@ -1,6 +1,7 @@
 package start_task
 
 import (
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"tevian/domain"
@@ -16,9 +17,13 @@ type Response struct {
 }
 
 func Run(c domain.Context, r Request) (*Response, error) {
-	_, err := c.Connection().Task().WhereId(r.Id)
+	task, err := c.Connection().Task().WhereId(r.Id)
 	if err != nil {
 		return nil, fmt.Errorf("task with id [%s] does not exist: %v", r.Id, err)
+	}
+
+	if task.Status == models.StatusCompleted || task.Status == models.StatusProcessing {
+		return nil, errors.New("task is already completed or processing right now")
 	}
 
 	images, err := c.Connection().Image().WhereTaskId(r.Id)
@@ -87,6 +92,7 @@ func processTask(c domain.Context, taskId string, images []models.Image) {
 	if err != nil {
 		return
 	}
+
 	updateTaskStatus(c, taskId, models.StatusCompleted)
 }
 

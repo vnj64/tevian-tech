@@ -18,10 +18,11 @@ type Response struct {
 }
 
 type StatsAdditional struct {
-	AllFacesQuantity   int     `json:"allFacesQuantity"`
-	AllGendersQuantity int     `json:"allGendersQuantity"`
-	AverageMaleAge     float64 `json:"averageMaleAge"`
-	AverageFemaleAge   float64 `json:"averageFemaleAge"`
+	AllFacesQuantity int     `json:"allFacesQuantity"`
+	MaleQuantity     int     `json:"maleQuantity"`
+	FemaleQuantity   int     `json:"femaleQuantity"`
+	AverageMaleAge   float64 `json:"averageMaleAge"`
+	AverageFemaleAge float64 `json:"averageFemaleAge"`
 }
 
 func Run(c domain.Context, r Request) (*Response, error) {
@@ -49,10 +50,11 @@ func Run(c domain.Context, r Request) (*Response, error) {
 		TaskStatus: task.Status,
 		Faces:      facesByImage,
 		Statistics: StatsAdditional{
-			AllFacesQuantity:   *task.AllFacesQuantity,
-			AllGendersQuantity: *task.AllFacesQuantity,
-			AverageMaleAge:     *task.AverageMaleAge,
-			AverageFemaleAge:   *task.AverageFemaleAge,
+			AllFacesQuantity: *task.AllFacesQuantity,
+			MaleQuantity:     *task.MaleQuantity,
+			FemaleQuantity:   *task.FemaleQuantity,
+			AverageMaleAge:   *task.AverageMaleAge,
+			AverageFemaleAge: *task.AverageFemaleAge,
 		},
 	}, nil
 }
